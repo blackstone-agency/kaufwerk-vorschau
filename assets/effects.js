@@ -58,13 +58,6 @@
       if (Math.abs(dx) > 50) show(index + (dx < 0 ? 1 : -1));
     });
 
-    if (fine && !reduce) {
-      root.addEventListener('pointermove', (e) => {
-        const r = root.getBoundingClientRect();
-        root.style.setProperty('--mx', ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
-        root.style.setProperty('--my', ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
-      }, { passive: true });
-    }
     show(0);
   });
 
@@ -85,27 +78,6 @@
     });
   }
 
-  /* Karten neigen sich zur Maus */
-  if (fine && !reduce) {
-    document.addEventListener('pointermove', (e) => {
-      const card = e.target.closest('[data-tilt]');
-      if (!card) return;
-      const r = card.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width;
-      const py = (e.clientY - r.top) / r.height;
-      card.style.setProperty('--rx', `${((0.5 - py) * 7).toFixed(2)}deg`);
-      card.style.setProperty('--ry', `${((px - 0.5) * 9).toFixed(2)}deg`);
-      card.style.setProperty('--px', `${(px * 100).toFixed(1)}%`);
-      card.style.setProperty('--py', `${(py * 100).toFixed(1)}%`);
-    }, { passive: true });
-    document.addEventListener('pointerout', (e) => {
-      const card = e.target.closest('[data-tilt]');
-      if (card && !card.contains(e.relatedTarget)) {
-        card.style.removeProperty('--rx');
-        card.style.removeProperty('--ry');
-      }
-    });
-  }
 
   /* Galerie-Lupe */
   if (fine) {

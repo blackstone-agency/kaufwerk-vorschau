@@ -14,11 +14,14 @@
     $('[data-demo-body]').innerHTML = (added ? '<div class="added"><strong>✓ Gute Wahl!</strong> Liegt im Warenkorb. <span data-delivery data-min="2" data-max="4"></span></div>' : '')
       + `<div class="ship-progress"><p>${total >= free ? '<strong>Kostenloser Versand</strong> – Grenze erreicht.' : `Noch <strong>${euro(free - total)}</strong> bis zum <strong>kostenlosen Versand</strong>`}</p>`
       + `<div class="ship-progress__bar"><span style="--p:${progress}"></span></div></div>`
-      + cart.map((p) => `<div class="demo-line"><img src="${esc(p.image)}" alt=""><span><strong>${esc(p.vendor)}</strong><br>${esc(p.title)} × ${p.qty}</span><strong>${euro(p.priceValue * p.qty)}</strong></div>`).join('')
+      + (total < free ? `<div class="gap" data-gap="${Math.round((free - total) * 100)}" data-exclude="${cart.map((c) => c.handle).join(',')}" hidden></div>` : '')
+      + cart.map((p) => `<div class="demo-line"><img src="${esc(p.image)}" alt=""><span><strong>${esc(p.vendor)}</strong><br>${esc(p.title)} × ${p.qty}</span><span class="demo-line__price"><s class="price__was">${euro(p.regular * p.qty)}</s><strong class="cart-line__price is-promo">${euro(p.priceValue * p.qty)}</strong></span></div>`).join('')
       + `<div class="xsell"><p class="xsell__title">Passt dazu</p><ul>${xsell.map((p) => `<li><a class="mini" href="${esc(p.url)}"><span class="mini__img"><img src="${esc(p.image)}" alt=""></span><span class="mini__text"><span class="mini__vendor">${esc(p.vendor)}</span><span class="mini__title">${esc(p.title)}</span><span class="mini__price">${esc(p.price)}</span></span></a></li>`).join('')}</ul></div>`;
-    $('[data-demo-foot]').innerHTML = `<div class="cart-summary"><div class="cart-summary__row"><span>Zwischensumme</span><span class="cart-summary__total">${euro(total)}</span></div>`
-      + '<p class="cart-summary__note">inkl. MwSt., zzgl. Versandkosten.</p></div><button type="button" class="btn btn--block" data-demo="Vorschau: Hier geht es im Shop zur sicheren Shopify-Kasse.">Sicher zur Kasse</button>';
+    const saved = cart.reduce((s, p) => s + (p.regular - p.priceValue) * p.qty, 0);
+    $('[data-demo-foot]').innerHTML = (saved > 0 ? `<p class="cart-saved">Durch Aktionen gespart: ${euro(saved)}</p>` : '') + `<div class="cart-summary"><div class="cart-summary__row"><span>Zwischensumme</span><span class="cart-summary__total">${euro(total)}</span></div>`
+      + '<p class="cart-summary__note">inkl. MwSt., zzgl. Versandkosten.</p></div><label class="gift"><input type="checkbox"> Das ist ein Geschenk (ohne Preise im Paket)</label><button type="button" class="btn btn--block" data-demo="Vorschau: Hier geht es im Shop zur sicheren Shopify-Kasse.">Sicher zur Kasse</button>';
     document.querySelectorAll('[data-demo-count]').forEach((c) => { const n = cart.reduce((s, p) => s + p.qty, 0); c.textContent = n || ''; c.dataset.count = n; });
+    if (window.KW_BOOST) window.KW_BOOST.fillGap();
   };
   const open = () => { drawer.classList.add('is-open'); drawer.setAttribute('aria-hidden', 'false'); document.body.classList.add('is-locked'); };
   const close = () => { drawer.classList.remove('is-open'); drawer.setAttribute('aria-hidden', 'true'); document.body.classList.remove('is-locked'); };
@@ -27,7 +30,10 @@
   document.addEventListener('click', (e) => {
     const add = e.target.closest('[data-demo-add]');
     if (add) { const p = window.KW_PRODUCTS.find((x) => x.handle === add.dataset.demoAdd); if (p) { const c = cart.find((x) => x.handle === p.handle); if (c) c.qty += 1; else cart.push({ ...p, qty: 1 }); render(true); setTimeout(open, 650); } return; }
-    if (e.target.closest('[data-demo-open]')) { render(false); open(); return; }
+    if (e.target.closest('[data-demo-open]')) { e.preventDefault(); render(false); open(); return; }
+    const chip = e.target.closest('[data-chip-vendor]');
+    if (chip) { const on = !chip.classList.contains('is-on'); document.querySelectorAll('[data-chip-vendor]').forEach((c) => c.classList.remove('is-on')); chip.classList.toggle('is-on', on);
+      document.querySelectorAll('li[data-vendor]').forEach((li) => { li.hidden = on && li.dataset.vendor !== chip.dataset.chipVendor; }); return; }
     if (e.target.closest('[data-demo-close]')) { close(); return; }
     const d = e.target.closest('[data-demo]'); if (d) { e.preventDefault(); toast(d.dataset.demo); return; }
     const th = e.target.closest('[data-thumb]'); if (th) goTo(th.dataset.thumb);
