@@ -121,21 +121,4 @@
     });
   }
 
-  /* Voraussichtlicher Liefertermin aus Werktagen */
-  const fmt = new Intl.DateTimeFormat('de-DE', { weekday: 'short', day: '2-digit', month: '2-digit' });
-  const addWorkdays = (n) => {
-    const d = new Date();
-    let left = n;
-    while (left > 0) {
-      d.setDate(d.getDate() + 1);
-      if (d.getDay() !== 0 && d.getDay() !== 6) left -= 1;
-    }
-    return d;
-  };
-  document.querySelectorAll('[data-delivery]').forEach((el) => {
-    const min = Number(el.dataset.min);
-    const max = Number(el.dataset.max);
-    if (!min || !max || max < min) return;
-    el.textContent = `Lieferung voraussichtlich ${fmt.format(addWorkdays(min))} – ${fmt.format(addWorkdays(max))}`;
-  });
 })();
